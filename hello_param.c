@@ -1,17 +1,19 @@
 #include<linux/kernel.h>
 #include<linux/init.h>
 #include<linux/module.h>
-#include<linux/moduleparam.h>
+#include<linux/moduleparam.h>  // Needed when module paramter intialisation
 
 
 int count, a_count, a[4];
 char *ptr;
 int cb_val = 0;
+// S_IRUSR | S_IWUSR ==> Set permissions
+module_param(count,int,S_IRUSR | S_IWUSR);  // Interger count
+module_param(ptr,charp,S_IRUSR | S_IWUSR);  // String literal
+module_param_array(a,int,&a_count,S_IRUSR | S_IWUSR);  // a_count => Number of I/p given as array element.
 
-module_param(count,int,S_IRUSR | S_IWUSR);
-module_param(ptr,charp,S_IRUSR | S_IWUSR);
-module_param_array(a,int,&a_count,S_IRUSR | S_IWUSR);
 
+// User defined parameter set Callback function,when a parameter changes
 static int myset(const char *value,const struct kernel_param *kp)
 {
 	int res = param_set_int(value,kp);
@@ -25,13 +27,14 @@ static int myset(const char *value,const struct kernel_param *kp)
 		return -EINVAL;
 }
 
+// Initialising the required function for get() and set() 
 static const struct kernel_param_ops my_param_ops = 
 {
 	.get = param_get_int,
 	.set = myset,
 };
 
-module_param_cb(cb_val,&my_param_ops,&cb_val,S_IRUSR | S_IWUSR);
+module_param_cb(cb_val,&my_param_ops,&cb_val,S_IRUSR | S_IWUSR); // Send notification,when parameter value changes.Only variables defined by this definition,sends notification on value change.
 					
 
 static int hello_entry(void)
@@ -58,6 +61,7 @@ static void hello_exit(void)
 module_init(hello_entry);
 module_exit(hello_exit);
 
+// Module Information
 MODULE_VERSION("GPL");
 MODULE_AUTHOR("Rajasekar <rajsuriya23@gmail.com>");
 MODULE_DESCRIPTION("A Hello World Module");
